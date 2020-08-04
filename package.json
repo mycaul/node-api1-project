@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/mycaul/node-api1-project#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "node": "^14.7.0",
+    "nodemon": "^2.0.4",
+    "shortid": "^2.2.15"
   }
 }
