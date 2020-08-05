@@ -1,88 +1,122 @@
-const express = require("express");
-const shortid = require("shortid");
-
+const express = require('express');
+const shortid = require('shortid');
 const server = express();
 
 server.use(express.json());
 
 let users = [
-    {
-    id: shortid(),
-    name: "Jane Doe OMG HIII",
-    bio: "Not Tarzan's Wife, another Jane" 
-    }
+  {
+    id: shortid.generate(),
+    name: 'Michael',
+    bio: 'web 32 student!!!',
+  },
+  {
+    id: shortid.generate(),
+    name: 'Luis Hernandez',
+    bio: 'node instructor',
+  },
+  {
+    id: shortid.generate(),
+    name: 'sailor moon',
+    bio: 'EPIC',
+  }
 ];
 
-server.post("/api/users", (req, res) => {
-    const user = req.body;
-    user.id = shortid.generate();
-
-    if(!user.name || !user.bio){
-        return res.status(400).json({errorMessage: "Please provide name and bio for the user."});
-    } else if(user.name && user.bio){
-        users.push(user);
-        return res.status(201).json(users);
-    } else{
-        return res.status(500).json({errorMessage: "There was an error while saving the user to the database"});
-    };
-});
-
-server.get("/api/users", (req, res) => {
-    if(!users){
-        return res.status(500).json({errorMessage: "The users information could not be retrieved."});
+server.post('/api/users', (req, res) => {
+  const newUser = req.body;
+  if (!newUser.name || !newUser.bio) {
+    res.status(400).json({
+      errorMessage: 'Please provide name and bio for the user.',
+    });
+  } else {
+    newUser.id = shortid.generate();
+    const original = users.length;
+    const updated = users.push(newUser);
+    if (updated === original + 1) {
+      res.status(201).json(newUser);
     } else {
-        return res.status(200).json(users);
-    };
+      res.status(500).json({
+        errorMessage:
+          'There was an error while saving the user to the database',
+      });
+    }
+  }
 });
 
-server.get("/api/users/:id", (req, res) => {
-    const id = req.params.id;
+server.get('/api/users', (req, res) => {
+  if (!users) {
+    res.status(500).json({
+      errorMessage: 'The users information could not be retrieved.',
+    });
+  } else {
+    res.status(200).json(users);
+  }
+});
 
-    let found = users.find(user => user.id === id);
-
-    if(!found){
-        return res.status(404).json({message: "The user with the specified ID does not exist."});
-    } else if (found){
-        return res.status(201).json(found);
+server.get('/api/users/:id', (req, res) => {
+  const id = req.params.id;
+  if (!users) {
+    res.status(500).json({
+      errorMessage: 'The user information could not be retrieved.',
+    });
+  } else {
+    const found = users.find((u) => u.id === id);
+    if (found) {
+      res.status(200).json(found);
     } else {
-        return res.status(500).json({errorMessage: "The user information could not be retrieved."});
-    };
+      res.status(404).json({
+        message: 'The user with the specified ID does not exist.',
+      });
+    }
+  }
 });
 
-
-server.delete("/api/users/:id", (req, res) => {
-    const id = req.params.id;
-
-    let found = users.find(user => user.id === id);
-
-    if(!found){
-        return res.status(404).json({message: "The user with the specified ID does not exist."});
-    } else if(found){
-        users = users.filter(user => user.id !== id);
-        return res.status(201).json(users);
-    } else{
-        return res.status(500).json({errorMessage: "The user could not be removed"});
-    };  
+server.delete('/api/users/:id', (req, res) => {
+  const id = req.params.id;
+  if (!users) {
+    res.status(500).json({
+      errorMessage: 'The user could not be removed',
+    });
+  } else {
+    const deleted = users.find((u) => u.id === id);
+    if (deleted) {
+      res.status(200).json(deleted);
+    } else {
+      res.status(404).json({
+        message: 'The user with the specified ID does not exist.',
+      });
+    }
+  }
 });
 
-server.put("/api/users/:id", (req, res) => {
-    const id = req.params.id;
+server.put('/api/users/:id', (req, res) => {
+  const id = req.params.id;
+  const changes = req.body;
 
-    const changes =req.body;
-
-    let found = users.find(user => user.id === id);
-
-    if(!found){
-        return res.status(404).json({message: "The user with the specified ID does not exist."});
-    } else if(!changes.name || !changes.bio){
-        return res.status(400).json({errorMessage: "Please provide name and bio for the user."});
-    } else if(changes.name && changes.bio){
+  if (!users) {
+    res.status(500).json({
+      errorMessage: 'The user information could not be modified.',
+    });
+  } else {
+    if (changes.name === undefined || changes.bio === undefined) {
+      res.status(400).json({
+        errorMessage: 'Please provide name and bio for the user.',
+      });
+    } else {
+      let found = users.find((u) => u.id === id);
+      if (found) {
         Object.assign(found, changes);
-        return res.status(200).json(users);
-    } else{
-        return res.status(500).json({errorMessage: "The user information could not be modified."})
-    };
+        res.status(200).json(users);
+      } else {
+        res.status(404).json({
+          message: 'The user with the specified ID does not exist.',
+        });
+      }
+    }
+  }
 });
 
-const port = 8000;
-server.listen(port, () => console.log("server running..."));
+const PORT = 8000;
+server.listen(PORT, () =>
+  console.log(`server running on port ${PORT}`),
+);
